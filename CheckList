@@ -1,0 +1,34 @@
+# Software Development and QA Checklist
+
+## Development
+    - [ ] **Pathfinding** @Mohammed-Shafeey
+        - [ ] Extract Key Frame data 
+        - [ ] Extract user orientation
+        - [ ] implement A* algorithm
+        - [ ] Output node list
+
+        - **Data cleaning** @MohammedQadi9800
+        - [ ] Recognize turns using orientation of nodes 
+        - Distance recognition 
+            - [ ] In straigh line
+            - [ ] before a turn
+        - [ ] output to TTS system
+
+        - **Data cleaning** @MohammedQadi9800
+        - [ ] Research TTS libraries 
+        - [ ] Implement
+
+    - [ ] **Meta Data** @Mohammed-Shafeey
+        - [ ] input testing meta data
+
+## Testing
+- [ ] Test pathfinding
+- [ ] Test turn detection
+- [ ] Test distance feedback
+- [ ] Test TTS system
+- [ ] Log and track bugs
+
+## Documentation
+- [ ] Final Project Reports
+- [ ] Final Project Presentations
+- [ ] READ ME
