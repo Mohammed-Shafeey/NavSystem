@@ -3,7 +3,7 @@
 ## Development
     - [ ] **Pathfinding** @Mohammed-Shafeey
         - [ ] Extract Key Frame data 
-        - [ ] Extract user orientation
+        - [X] Extract user orientation
         - [ ] implement A* algorithm
         - [ ] Output node list
 
