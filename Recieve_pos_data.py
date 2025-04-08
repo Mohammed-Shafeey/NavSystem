@@ -8,4 +8,4 @@ print("Waiting for SLAM position data...")
 
 while True:
     data, _ = sock.recvfrom(1024)  # Receive data
-    print("Received Position (X, Y, Z):", data.decode())  # Print it
+    print("Received Position and Angle (X, Y, Z, W):", data.decode())  # Print it
