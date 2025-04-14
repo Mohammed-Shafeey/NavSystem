@@ -39,7 +39,7 @@ def main(map_file, dest_landmarks_file, dest_keyframes_file):
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print("Usage: python pointcloud_unpacker.py [map file] [csv landmarks destination] [csv keyframes destinatio]")
+        print("Usage: python pointcloud_unpacker.py [map file] [csv landmarks destination] [csv keyframes destination]")
     else:
         main(sys.argv[1], sys.argv[2], sys.argv[3])
 
