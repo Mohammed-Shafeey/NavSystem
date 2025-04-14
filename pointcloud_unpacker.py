@@ -1,5 +1,8 @@
 import sys
+import numpy as np
 import msgpack
+from scipy.spatial.transform import Rotation as R
+
 
 
 def main(map_file, dest_landmarks_file, dest_keyframes_file):
@@ -23,18 +26,28 @@ def main(map_file, dest_landmarks_file, dest_keyframes_file):
 
     print(f"Extracted {len(keyframes)} keyframes.")
 
-    # Save keyframe positions
+    # Save keyframe positions (world coordinates!)
     with open(dest_keyframes_file, "w") as f:
         for kf_id, keyframe in keyframes.items():
-            position = keyframe.get("trans_cw", [0, 0, 0])  # Translation (x, y, z)
-            rotation = keyframe.get("rot_cw", [[1, 0, 0], [0, 1, 0], [0, 0, 1]])  # Identity matrix if missing
-            timestamp = keyframe.get("ts", 0)  # Timestamp
+            t_cw = np.array(keyframe.get("trans_cw", [0, 0, 0]))
 
-            # Convert rotation matrix to a single-line string
+            rot_cw_raw = keyframe.get("rot_cw", [0, 0, 0, 1])  # quaternion: (qx, qy, qz, qw)
+            if len(rot_cw_raw) != 4:
+                print(f"Warning: Keyframe {kf_id} has invalid rotation data: {rot_cw_raw}")
+                continue
 
-            f.write(f"{kf_id}, {timestamp}, {position[0]}, {position[1]}, {position[2]}, {rotation}\n")
+            R_cw = R.from_quat(rot_cw_raw).as_matrix()  # convert quaternion to rotation matrix
 
-    print(f"Saved keyframes to {dest_keyframes_file}")
+            # Invert the pose: T_cw → T_wc
+            R_wc = R_cw.T
+            t_wc = -R_wc @ t_cw
+
+            quat_wc = R.from_matrix(R_wc).as_quat()  # get world-facing quaternion
+
+            timestamp = keyframe.get("ts", 0)
+            f.write(f"{kf_id}, {timestamp}, {t_wc[0]}, {t_wc[1]}, {t_wc[2]}, ({quat_wc[0]}, {quat_wc[1]}, {quat_wc[2]}, {quat_wc[3]})\n")
+
+    print(f"Finished writing to {dest_keyframes_file}")
 
 
 if __name__ == "__main__":
