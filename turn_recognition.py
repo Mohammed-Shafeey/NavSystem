@@ -100,10 +100,6 @@ class TurnRecognizer:
         if len(path_positions) < 3:
             return turns
         
-        # If orientations are not provided, calculate them based on path direction
-        if orientations is None:
-            orientations = self._calculate_orientations(path_positions)
-        
         # Analyze each node except first and last
         for i in range(1, len(path_positions)-1):
             prev_orientation = orientations[i-1]
@@ -129,34 +125,3 @@ class TurnRecognizer:
                 turns.append((i, prev_to_current[0], turn_type, angle))
         
         return turns
-    
-    def _calculate_orientations(self, positions):
-        """
-        Calculate orientations based on path direction.
-        
-        Args:
-            positions: List of position tuples (x, y, z)
-            
-        Returns:
-            list: List of orientation values in degrees
-        """
-        orientations = []
-        
-        for i in range(len(positions)):
-            if i == 0:
-                # First node orientation is based on direction to second node
-                dx = positions[1][0] - positions[0][0]
-                dy = positions[1][1] - positions[0][1]
-                orientation = np.degrees(np.arctan2(dy, dx))
-            elif i == len(positions) - 1:
-                # Last node orientation is same as second-to-last
-                orientation = orientations[-1]
-            else:
-                # Middle nodes orientation is based on direction from previous to next
-                dx = positions[i+1][0] - positions[i-1][0]
-                dy = positions[i+1][1] - positions[i-1][1]
-                orientation = np.degrees(np.arctan2(dy, dx))
-            
-            orientations.append(orientation)
-        
-        return orientations
