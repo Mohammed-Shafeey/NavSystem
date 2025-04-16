@@ -1,11 +1,11 @@
 # Software Development and QA Checklist
 
 ## Development
-    - [ ] **Pathfinding** @Mohammed-Shafeey
-        - [ ] Extract Key Frame data 
+    - [X] **Pathfinding** @Mohammed-Shafeey
+        - [X] Extract Key Frame data 
         - [X] Extract user orientation
-        - [ ] implement A* algorithm
-        - [ ] Output node list
+        - [X] implement A* algorithm
+        - [X] Output node list
 
         - **Data cleaning** @MohammedQadi9800
         - [ ] Recognize turns using orientation of nodes 
