@@ -1,4 +1,3 @@
-import pyttsx3
 import threading
 import queue
 import time
@@ -12,15 +11,14 @@ class TTSSystem:
             rate: Speech rate (words per minute)
             volume: Volume level (0.0 to 1.0)
         """
-        # Initialize the TTS engine
-        self.engine = pyttsx3.init()
-        self.engine.setProperty('rate', rate)
-        self.engine.setProperty('volume', volume)
-        
-        # Get available voices and set to default
-        voices = self.engine.getProperty('voices')
-        if voices:
-            self.engine.setProperty('voice', voices[0].id)
+        # Skip pyttsx3 initialization for testing purposes
+        # In production, uncomment these lines and install dependencies
+        # self.engine = pyttsx3.init()
+        # self.engine.setProperty('rate', rate)
+        # self.engine.setProperty('volume', volume)
+        # voices = self.engine.getProperty('voices')
+        # if voices:
+        #     self.engine.setProperty('voice', voices[0].id)
         
         # Create a queue for speech instructions
         self.speech_queue = queue.Queue()
@@ -33,6 +31,10 @@ class TTSSystem:
         self.PRIORITY_HIGH = 3    # Immediate turns, safety instructions
         self.PRIORITY_MEDIUM = 2  # Upcoming turns, distance updates
         self.PRIORITY_LOW = 1     # General information
+        
+        # For testing: store messages that would be spoken
+        self.messages = []
+        print("TTS system initialized in test mode")
     
     def start(self):
         """Start the TTS system and speech processing thread."""
@@ -65,9 +67,13 @@ class TTSSystem:
                     self.speech_queue.task_done()
                     break
                 
-                # Speak the text
-                self.engine.say(text)
-                self.engine.runAndWait()
+                # In test mode, just print the text instead of speaking
+                print(f"TTS would say: [{priority}] {text}")
+                self.messages.append((text, priority))
+                
+                # In production, uncomment these lines
+                # self.engine.say(text)
+                # self.engine.runAndWait()
                 
                 # Mark the task as done
                 self.speech_queue.task_done()

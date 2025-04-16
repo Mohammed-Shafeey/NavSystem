@@ -32,10 +32,10 @@ class NavigationSystem:
         self.current_position = None
         self.current_orientation = None
         self.destination = None
-        self.current_path = []
-        self.path_positions = []
-        self.path_orientations = []
-        self.turn_indices = []
+        self.current_path_ids = []  # List of keyframe IDs
+        self.path_positions = {}    # Dictionary mapping keyframe IDs to positions
+        self.path_orientations = {} # Dictionary mapping keyframe IDs to orientations
+        self.turn_indices = []      # Indices in the path where turns occur
         
         # Control flags
         self.is_navigating = False
@@ -87,42 +87,43 @@ class NavigationSystem:
         # Find nearest keyframe to current position
         start_id, _ = find_nearest_keyframe(self.current_position, self.keyframe_data)
         
-        # Calculate path using A* algorithm
+        # Calculate path using A* algorithm - returns list of keyframe IDs
         path_ids = self.path_finder.astar(start_id, self.destination)
         
         if path_ids is None:
             print("Error: No path found to destination")
             return False
         
-        # Convert path IDs to position tuples
-        self.current_path = path_ids
-        self.path_positions = []
+        # Store the keyframe IDs
+        self.current_path_ids = path_ids
         
+        # Clear previous path data
+        self.path_positions = {}
+        self.path_orientations = {}
+        
+        # Convert keyframe IDs to positions and store in dictionary
         for kf_id in path_ids:
-            pos = self.keyframe_data[kf_id]
-            self.path_positions.append(pos)
+            self.path_positions[kf_id] = self.keyframe_data[kf_id]
         
-        # Calculate orientations based on path direction
-        self.path_orientations = self._calculate_orientations(self.path_positions)
+        # In a real implementation, orientation would come from SLAM data
+        # For now, calculate orientations based on path direction
+        self._calculate_orientations()
         
         # Analyze path for turns
         self.analyze_path_turns()
         
         return True
     
-    def _calculate_orientations(self, positions):
+    def _calculate_orientations(self):
         """
         Calculate orientations based on path direction.
         
-        Args:
-            positions: List of position tuples (x, y, z)
-            
-        Returns:
-            list: List of orientation values in degrees
+        In a production environment, this would be replaced with orientation data from SLAM.
         """
-        orientations = []
+        # Get ordered list of positions based on path IDs
+        positions = [self.path_positions[kf_id] for kf_id in self.current_path_ids]
         
-        for i in range(len(positions)):
+        for i, kf_id in enumerate(self.current_path_ids):
             if i == 0:
                 # First node orientation is based on direction to second node
                 if len(positions) > 1:
@@ -133,28 +134,31 @@ class NavigationSystem:
                     orientation = 0  # Default if only one position
             elif i == len(positions) - 1:
                 # Last node orientation is same as second-to-last
-                orientation = orientations[-1]
+                orientation = self.path_orientations[self.current_path_ids[i-1]]
             else:
                 # Middle nodes orientation is based on direction from previous to next
                 dx = positions[i+1][0] - positions[i-1][0]
                 dy = positions[i+1][1] - positions[i-1][1]
                 orientation = np.degrees(np.arctan2(dy, dx))
             
-            orientations.append(orientation)
-        
-        return orientations
+            self.path_orientations[kf_id] = orientation
     
     def analyze_path_turns(self):
         """Analyze the current path to identify turns."""
+        # Get ordered list of positions and orientations based on path IDs
+        positions = [self.path_positions[kf_id] for kf_id in self.current_path_ids]
+        orientations = [self.path_orientations[kf_id] for kf_id in self.current_path_ids]
+        
         # Get turn information from the turn recognizer
-        turn_info = self.turn_recognizer.analyze_path(self.path_positions, self.path_orientations)
+        turn_info = self.turn_recognizer.analyze_path(positions, orientations)
         
         # Extract turn indices
         self.turn_indices = [info[0] for info in turn_info]
         
         # Print turn information for debugging
         for idx, direction, turn_type, angle in turn_info:
-            print(f"Turn at node {idx}: {direction.value} {turn_type.value} ({angle:.1f} degrees)")
+            kf_id = self.current_path_ids[idx]
+            print(f"Turn at node {idx} (keyframe {kf_id}): {direction.value} {turn_type.value} ({angle:.1f} degrees)")
     
     def start_navigation(self):
         """Start the navigation process."""
@@ -162,7 +166,7 @@ class NavigationSystem:
             print("Navigation already in progress")
             return
         
-        if not self.current_path:
+        if not self.current_path_ids:
             print("No path calculated. Call calculate_path() first.")
             return
         
@@ -197,6 +201,26 @@ class NavigationSystem:
         self.tts_system.speak("Navigation stopped.", self.tts_system.PRIORITY_HIGH)
         self.tts_system.stop()
     
+    def update_position_from_slam(self):
+        """
+        Update position and orientation from SLAM system.
+        In a real implementation, this would call get_latest_position() from Recieve_pos_data.py
+        and parse the returned data.
+        """
+        # This is a placeholder. In production, you would:
+        # 1. Call get_latest_position() from Recieve_pos_data.py
+        # 2. Parse the returned string to extract position and orientation
+        # 3. Update self.current_position and self.current_orientation
+        
+        # Example implementation:
+        # from Recieve_pos_data import get_latest_position
+        # data = get_latest_position()
+        # parts = data.split(',')
+        # if len(parts) >= 4:
+        #     x, y, z, orientation = float(parts[0]), float(parts[1]), float(parts[2]), float(parts[3])
+        #     self.set_current_position((x, y, z), orientation)
+        pass
+    
     def _navigation_loop(self):
         """Main navigation loop that runs in a separate thread."""
         last_turn_announcement = -1
@@ -204,6 +228,9 @@ class NavigationSystem:
         
         while self.is_navigating:
             try:
+                # In production, update position from SLAM
+                # self.update_position_from_slam()
+                
                 # Check if we've reached the destination
                 if self._check_destination_reached():
                     self.tts_system.speak(self.tts_system.announce_arrival(), 
@@ -214,15 +241,21 @@ class NavigationSystem:
                 # Get current time
                 current_time = time.time()
                 
+                # Get ordered list of positions for distance calculations
+                positions = [self.path_positions[kf_id] for kf_id in self.current_path_ids]
+                
                 # Check for upcoming turns
                 distance_to_turn, turn_idx = self.distance_calculator.calculate_distance_to_turn(
-                    self.current_position, self.path_positions, self.turn_indices)
+                    self.current_position, positions, self.turn_indices)
                 
                 # Announce turns when approaching
                 if distance_to_turn is not None and turn_idx != last_turn_announcement:
+                    # Get ordered list of positions and orientations for turn recognition
+                    orientations = [self.path_orientations[kf_id] for kf_id in self.current_path_ids]
+                    
                     # Find turn information
                     turn_info = None
-                    for info in self.turn_recognizer.analyze_path(self.path_positions, self.path_orientations):
+                    for info in self.turn_recognizer.analyze_path(positions, orientations):
                         if info[0] == turn_idx:
                             turn_info = info
                             break
@@ -272,11 +305,12 @@ class NavigationSystem:
         Returns:
             bool: True if destination reached
         """
-        if not self.path_positions:
+        if not self.current_path_ids:
             return False
         
-        # Get destination position (last position in path)
-        destination_position = self.path_positions[-1]
+        # Get destination position (last keyframe in path)
+        destination_id = self.current_path_ids[-1]
+        destination_position = self.path_positions[destination_id]
         
         # Calculate distance to destination
         distance = self.distance_calculator.calculate_distance(
@@ -292,14 +326,17 @@ class NavigationSystem:
         Returns:
             float: Remaining distance in meters or None if not available
         """
-        if not self.path_positions:
+        if not self.current_path_ids:
             return None
+        
+        # Get ordered list of positions for distance calculations
+        positions = [self.path_positions[kf_id] for kf_id in self.current_path_ids]
         
         # Find the closest node in the path to the current position
         min_dist = float('inf')
         closest_node_idx = 0
         
-        for i, position in enumerate(self.path_positions):
+        for i, position in enumerate(positions):
             dist = self.distance_calculator.calculate_distance(
                 self.current_position, position)
             if dist < min_dist:
@@ -310,8 +347,8 @@ class NavigationSystem:
         remaining_distance = min_dist
         
         # Add distances between nodes from closest node to the end
-        for i in range(closest_node_idx, len(self.path_positions) - 1):
+        for i in range(closest_node_idx, len(positions) - 1):
             remaining_distance += self.distance_calculator.calculate_distance(
-                self.path_positions[i], self.path_positions[i+1])
+                positions[i], positions[i+1])
         
         return remaining_distance
