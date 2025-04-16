@@ -32,3 +32,20 @@ def build_graph(keyframes, distance_threshold=1.5):
                 graph[id1].append((id2, dist))
                 graph[id2].append((id1, dist))  # Undirected edge
     return dict(graph)
+
+def find_nearest_keyframe(position, keyframes):
+    """
+    Parameters:
+    - poisition: a tuple of (x, y, z)
+    - keyframes: dictionary of keyframe id and pos
+    """
+    min_distance = float('inf')
+    nearest_kf_id = None
+    
+    for kf_id, kf_pos in keyframes.items():
+        dist = np.linalg.norm(np.array(kf_pos) - np.array(position))
+        if dist < min_distance:
+            min_distance = dist
+            nearest_kf_id = kf_id
+            
+    return nearest_kf_id, min_distance
