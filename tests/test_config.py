@@ -10,11 +10,8 @@ import cv2
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('TestConfig')
 
-# Add the src directory to the path so we can import our modules
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
-
 # Import test utilities
-from test_utils import setup_test_environment, teardown_test_environment
+from .test_utils import setup_test_environment, teardown_test_environment
 
 class BaseTestCase(unittest.TestCase):
     """Base test case with common setup and teardown methods."""

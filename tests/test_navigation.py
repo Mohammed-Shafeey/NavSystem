@@ -10,17 +10,14 @@ import cv2
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('TestNavigation')
 
-# Add the src directory to the path so we can import our modules
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
-
 # Import our modules
 from navsystem.navigation_system import NavigationSystem
 from navsystem.turn_recognition import TurnRecognizer
 from navsystem.distance_calculator import DistanceCalculator
 
 # Import test utilities
-from test_config import BaseTestCase
-from test_utils import MockNavSystem
+from .test_config import BaseTestCase
+from .test_utils import MockNavSystem
 
 class TestNavigation(BaseTestCase):
     """Test cases for the navigation system."""

@@ -10,17 +10,14 @@ import cv2
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('TestSystemIntegration')
 
-# Add the src directory to the path so we can import our modules
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
-
 # Import our modules
 from navsystem.bluetooth_receiver import BluetoothReceiver, video_queue, audio_queue
 from navsystem.video_processor import StellaVSLAMProcessor
 from navsystem.audio_processor import AudioToTextConverter
 
 # Import test utilities
-from test_config import BaseTestCase
-from test_utils import get_mock_video_frame, get_mock_audio_data, get_mock_audio_text, MockNavSystem
+from .test_config import BaseTestCase
+from .test_utils import get_mock_video_frame, get_mock_audio_data, get_mock_audio_text, MockNavSystem
 
 class TestSystemIntegration(BaseTestCase):
     """Test cases for the full system integration."""
