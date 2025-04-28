@@ -63,8 +63,6 @@ class MockTTSSystem:
         else:
             return f"You have reached your destination"
 
-# Patch the TTSSystem in navigation_system
-# This is a bit hacky but works for testing
 sys.modules['tts_system'].TTSSystem = MockTTSSystem
 
 def test_navigation_system():

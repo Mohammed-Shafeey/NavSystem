@@ -207,19 +207,13 @@ class NavigationSystem:
         In a real implementation, this would call get_latest_position() from Recieve_pos_data.py
         and parse the returned data.
         """
-        # This is a placeholder. In production, you would:
-        # 1. Call get_latest_position() from Recieve_pos_data.py
-        # 2. Parse the returned string to extract position and orientation
-        # 3. Update self.current_position and self.current_orientation
         
-        # Example implementation:
-        # from Recieve_pos_data import get_latest_position
-        # data = get_latest_position()
-        # parts = data.split(',')
-        # if len(parts) >= 4:
-        #     x, y, z, orientation = float(parts[0]), float(parts[1]), float(parts[2]), float(parts[3])
-        #     self.set_current_position((x, y, z), orientation)
-        pass
+        from Recieve_pos_data import get_latest_position
+        data = get_latest_position()
+        parts = data.split(',')
+        if len(parts) >= 4:
+            x, y, z, orientation = float(parts[0]), float(parts[1]), float(parts[2]), float(parts[3])
+            self.set_current_position((x, y, z), orientation)
     
     def _navigation_loop(self):
         """Main navigation loop that runs in a separate thread."""
