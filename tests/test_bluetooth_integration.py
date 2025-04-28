@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
 import unittest
 import os
 import sys
 import time
-import threading
 import logging
 import numpy as np
 import cv2
@@ -12,31 +10,20 @@ import cv2
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('TestBluetoothIntegration')
 
-# Add the current directory to the path so we can import our modules
-sys.path.append(os.getcwd())
+# Add the src directory to the path so we can import our modules
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
 
 # Import our modules
-from bluetooth_receiver import BluetoothReceiver, video_queue, audio_queue
-from video_processor import StellaVSLAMProcessor
-from audio_processor import AudioToTextConverter
+from navsystem.bluetooth_receiver import BluetoothReceiver, video_queue, audio_queue
+from navsystem.video_processor import StellaVSLAMProcessor
+from navsystem.audio_processor import AudioToTextConverter
 
-class TestBluetoothIntegration(unittest.TestCase):
+# Import test utilities
+from test_config import BaseTestCase
+from test_utils import get_mock_video_frame, get_mock_audio_data
+
+class TestBluetoothIntegration(BaseTestCase):
     """Test cases for the Bluetooth integration."""
-    
-    def setUp(self):
-        """Set up the test environment."""
-        logger.info("Setting up test environment")
-        
-        # Clear the queues
-        while not video_queue.empty():
-            video_queue.get()
-        
-        while not audio_queue.empty():
-            audio_queue.get()
-    
-    def tearDown(self):
-        """Clean up after the test."""
-        logger.info("Cleaning up test environment")
     
     def test_bluetooth_receiver_initialization(self):
         """Test that the Bluetooth receiver can be initialized."""
@@ -67,9 +54,8 @@ class TestBluetoothIntegration(unittest.TestCase):
         """Test that the video queue works correctly."""
         logger.info("Testing video queue functionality")
         
-        # Create a test frame
-        test_frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        cv2.rectangle(test_frame, (100, 100), (300, 300), (0, 255, 0), 3)
+        # Get a mock video frame
+        test_frame = get_mock_video_frame(self.test_env['mock_data_dir'])
         
         # Put the frame in the queue
         video_queue.put(test_frame)
@@ -88,8 +74,8 @@ class TestBluetoothIntegration(unittest.TestCase):
         """Test that the audio queue works correctly."""
         logger.info("Testing audio queue functionality")
         
-        # Create test audio data
-        test_audio = b'test audio data'
+        # Get mock audio data
+        test_audio = get_mock_audio_data(self.test_env['mock_data_dir'])
         
         # Put the audio data in the queue
         audio_queue.put(test_audio)
@@ -113,9 +99,8 @@ class TestBluetoothIntegration(unittest.TestCase):
         # Start the processor
         processor.start_processing()
         
-        # Create a test frame
-        test_frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        cv2.rectangle(test_frame, (100, 100), (300, 300), (0, 255, 0), 3)
+        # Get a mock video frame
+        test_frame = get_mock_video_frame(self.test_env['mock_data_dir'])
         
         # Put the frame in the queue
         video_queue.put(test_frame)
@@ -139,8 +124,8 @@ class TestBluetoothIntegration(unittest.TestCase):
         # Start the processor
         processor.start_processing()
         
-        # Create test audio data (this is just a placeholder, not real audio data)
-        test_audio = b'test audio data'
+        # Get mock audio data
+        test_audio = get_mock_audio_data(self.test_env['mock_data_dir'])
         
         # Put the audio data in the queue
         audio_queue.put(test_audio)
@@ -154,9 +139,5 @@ class TestBluetoothIntegration(unittest.TestCase):
         # Note: We can't easily test the actual speech recognition without real audio data,
         # so we're just testing that the processor doesn't crash when given data.
 
-def run_tests():
-    """Run the test suite."""
-    unittest.main(argv=['first-arg-is-ignored'], exit=False)
-
 if __name__ == "__main__":
-    run_tests()
+    unittest.main()

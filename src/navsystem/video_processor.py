@@ -5,7 +5,7 @@ import queue
 import logging
 import os
 import time
-from bluetooth_receiver import video_queue
+from .bluetooth_receiver import video_queue
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

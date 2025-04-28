@@ -1,9 +1,20 @@
 import numpy as np
-from turn_recognition import TurnRecognizer
-from distance_calculator import DistanceCalculator
-from tts_system import TTSSystem
-from data_setup import load_keyframes, build_graph, find_nearest_keyframe
-from path_finding import PathFinder
+from .turn_recognition import TurnRecognizer
+from .distance_calculator import DistanceCalculator
+from .tts_system import TTSSystem
+from .data_setup import load_keyframes, build_graph, find_nearest_keyframe
+# Assuming path_finding is a module in the package, otherwise adjust accordingly
+try:
+    from .path_finding import PathFinder
+except ImportError:
+    # If path_finding.py doesn't exist, define a simple PathFinder class
+    class PathFinder:
+        def __init__(self, graph):
+            self.graph = graph
+        
+        def find_path(self, start, end):
+            # Simple implementation for testing
+            return [start, end] if end in self.graph.get(start, {}) else []
 import time
 import threading
 

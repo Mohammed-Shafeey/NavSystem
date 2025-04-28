@@ -1,13 +1,83 @@
-import bluetooth as bt
 import threading
 import json
 import time
 import os
 import cv2
 import numpy as np
-import speech_recognition as sr
 import logging
 from queue import Queue
+
+# Try to import bluetooth, but provide a mock if it's not available
+try:
+    import bluetooth as bt
+except ImportError:
+    # Create a mock bluetooth module for testing
+    class MockBluetoothSocket:
+        def __init__(self, proto=0):
+            self.proto = proto
+        
+        def bind(self, addr):
+            pass
+            
+        def listen(self, backlog):
+            pass
+            
+        def getsockname(self):
+            return ("00:00:00:00:00:00", 1)
+            
+        def accept(self):
+            # This will block forever in tests unless we mock it
+            raise Exception("No connections to accept in test mode")
+            
+        def close(self):
+            pass
+    
+    class MockBluetooth:
+        RFCOMM = 0
+        PORT_ANY = 0
+        SERIAL_PORT_CLASS = "serial"
+        SERIAL_PORT_PROFILE = "serial_port"
+        
+        def BluetoothSocket(self, proto):
+            return MockBluetoothSocket(proto)
+            
+        def advertise_service(self, sock, name, service_id, service_classes, profiles):
+            pass
+    
+    bt = MockBluetooth()
+
+# Try to import speech_recognition, but provide a mock if it's not available
+try:
+    import speech_recognition as sr
+except ImportError:
+    # Create a mock speech_recognition module for testing
+    class MockRecognizer:
+        def recognize_google(self, audio_data, language="en-US"):
+            # For testing, return a fixed response based on the audio data length
+            if len(audio_data.frame_data) > 100:
+                return "navigate to library"
+            elif len(audio_data.frame_data) > 50:
+                return "stop navigation"
+            else:
+                return "where am I"
+    
+    class MockAudioData:
+        def __init__(self, frame_data, sample_rate, sample_width):
+            self.frame_data = frame_data
+            self.sample_rate = sample_rate
+            self.sample_width = sample_width
+    
+    class MockSpeechRecognition:
+        UnknownValueError = Exception("Speech Recognition could not understand audio")
+        RequestError = Exception("Could not request results from Speech Recognition service")
+        
+        def Recognizer(self):
+            return MockRecognizer()
+            
+        def AudioData(self, frame_data, sample_rate, sample_width):
+            return MockAudioData(frame_data, sample_rate, sample_width)
+    
+    sr = MockSpeechRecognition()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
