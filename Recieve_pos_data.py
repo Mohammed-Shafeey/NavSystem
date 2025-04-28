@@ -12,4 +12,3 @@ def get_latest_position():
     
     return data.decode()
 
-
