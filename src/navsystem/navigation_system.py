@@ -1,20 +1,10 @@
 import numpy as np
-from .turn_recognition import TurnRecognizer
-from .distance_calculator import DistanceCalculator
-from .tts_system import TTSSystem
-from .data_setup import load_keyframes, build_graph, find_nearest_keyframe
-# Assuming path_finding is a module in the package, otherwise adjust accordingly
-try:
-    from .path_finding import PathFinder
-except ImportError:
-    # If path_finding.py doesn't exist, define a simple PathFinder class
-    class PathFinder:
-        def __init__(self, graph):
-            self.graph = graph
-        
-        def find_path(self, start, end):
-            # Simple implementation for testing
-            return [start, end] if end in self.graph.get(start, {}) else []
+from turn_recognition import TurnRecognizer
+from distance_calculator import DistanceCalculator
+from tts_system import TTSSystem
+from data_setup import load_keyframes, build_graph, find_nearest_keyframe
+from path_finding import PathFinder
+
 import time
 import threading
 
@@ -32,7 +22,8 @@ class NavigationSystem:
         self.graph = build_graph(self.keyframe_data, distance_threshold)
         
         # Initialize pathfinder
-        self.path_finder = PathFinder(self.keyframe_data, self.graph)
+        self.path_finder = PathFinder(self.graph, self.keyframe_data)
+
         
         # Initialize components
         self.turn_recognizer = TurnRecognizer()
@@ -97,9 +88,9 @@ class NavigationSystem:
         
         # Find nearest keyframe to current position
         start_id, _ = find_nearest_keyframe(self.current_position, self.keyframe_data)
-        
+
         # Calculate path using A* algorithm - returns list of keyframe IDs
-        path_ids = self.path_finder.astar(start_id, self.destination)
+        path_ids = self.path_finder.find_path(start_id, self.destination)
         
         if path_ids is None:
             print("Error: No path found to destination")
@@ -116,7 +107,6 @@ class NavigationSystem:
         for kf_id in path_ids:
             self.path_positions[kf_id] = self.keyframe_data[kf_id]
         
-        # In a real implementation, orientation would come from SLAM data
         # For now, calculate orientations based on path direction
         self._calculate_orientations()
         
@@ -233,9 +223,8 @@ class NavigationSystem:
         
         while self.is_navigating:
             try:
-                # In production, update position from SLAM
-                # self.update_position_from_slam()
                 
+                self.update_position_from_slam()
                 # Check if we've reached the destination
                 if self._check_destination_reached():
                     self.tts_system.speak(self.tts_system.announce_arrival(), 

@@ -1,6 +1,7 @@
 import threading
 import queue
 import time
+import pyttsx3
 
 class TTSSystem:
     def __init__(self, rate=150, volume=1.0):
@@ -11,14 +12,12 @@ class TTSSystem:
             rate: Speech rate (words per minute)
             volume: Volume level (0.0 to 1.0)
         """
-        # Skip pyttsx3 initialization for testing purposes
-        # In production, uncomment these lines and install dependencies
-        # self.engine = pyttsx3.init()
-        # self.engine.setProperty('rate', rate)
-        # self.engine.setProperty('volume', volume)
-        # voices = self.engine.getProperty('voices')
-        # if voices:
-        #     self.engine.setProperty('voice', voices[0].id)
+        self.engine = pyttsx3.init()
+        self.engine.setProperty('rate', rate)
+        self.engine.setProperty('volume', volume)
+        voices = self.engine.getProperty('voices')
+        if voices:
+            self.engine.setProperty('voice', voices[0].id)
         
         # Create a queue for speech instructions
         self.speech_queue = queue.Queue()
@@ -71,9 +70,8 @@ class TTSSystem:
                 print(f"TTS would say: [{priority}] {text}")
                 self.messages.append((text, priority))
                 
-                # In production, uncomment these lines
-                # self.engine.say(text)
-                # self.engine.runAndWait()
+                self.engine.say(text)
+                self.engine.runAndWait()
                 
                 # Mark the task as done
                 self.speech_queue.task_done()

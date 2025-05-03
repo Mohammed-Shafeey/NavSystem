@@ -5,7 +5,7 @@ import queue
 import logging
 import os
 import time
-from .bluetooth_receiver import video_queue
+from bluetooth_receiver import video_queue
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -15,7 +15,6 @@ class StellaVSLAMProcessor:
     """
     Class to process video frames for stella vslam.
     This is a simplified implementation that prepares frames for stella vslam.
-    In a real implementation, you would integrate with the actual stella vslam library.
     """
     def __init__(self, config_file=None, vocab_file=None):
         """
