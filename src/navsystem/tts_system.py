@@ -17,7 +17,7 @@ class TTSSystem:
         self.engine.setProperty('volume', volume)
         voices = self.engine.getProperty('voices')
         if voices:
-            self.engine.setProperty('voice', voices[0].id)
+            self.engine.setProperty('voice', voices[25].id) 
         
         # Create a queue for speech instructions
         self.speech_queue = queue.Queue()

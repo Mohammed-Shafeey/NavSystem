@@ -1,4 +1,5 @@
 from navigation_system import NavigationSystem
+import time
 
 # Initialize
 nav_system = NavigationSystem(keyframe_file="data/keyframe_data.csv")
@@ -15,4 +16,4 @@ nav_system.calculate_path()
 # Start navigation (will give voice/direction updates)
 nav_system.start_navigation()
 
-
+time.sleep(100)
